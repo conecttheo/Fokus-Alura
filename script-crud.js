@@ -1,13 +1,16 @@
-
-// Esta linha pega o botão de adicionar tarefa baseado na classe CSS.
 const btnAdicionarTarefa = document.querySelector('.app__button--add-task')
-// esta linha seleciona nosso formulário de adicionar tarefa.
 const formAdicionarTarefa = document.querySelector('.app__form-add-task')
-// pegamos a área de texto onde o usuário digita a descrição da tarefa.
 const textarea = document.querySelector('.app__form-textarea')
 const ulTarefas = document.querySelector('.app__section-task-list')
-// Esta é a nossa lista (ou array) de tarefas. Ela começa vazia porque ainda não adicionamos nenhuma tarefa.
+const paragrafoDescriçãoTarefa = document.querySelector('.app__section-active-task-description')
+
+
 const tarefas = JSON.parse(localStorage.getItem('tarefas')) || []
+let tarefaSelecionada = null
+
+function atualizarTarefas () {
+    localStorage.setItem('tarefas', JSON.stringify(tarefas))
+}
 
 function criarElementoTarefa(tarefa) {
     const li = document.createElement('li')
@@ -28,6 +31,16 @@ function criarElementoTarefa(tarefa) {
     const botao = document.createElement('button')
     botao.classList.add('app_button-edit')
 
+    botao.onclick = () => {
+        const novaDescricao = prompt("Qual é o novo nome da tarefa?")
+        if (novaDescricao) {
+            paragrafo.textContent = novaDescricao
+            tarefa.descricao = novaDescricao
+            atualizarTarefas()
+        }  
+    }
+    
+
     const imagemBotao = document.createElement('img')
     imagemBotao.setAttribute('src', '/imagens/edit.png')
     botao.append(imagemBotao)
@@ -35,6 +48,22 @@ function criarElementoTarefa(tarefa) {
     li.append(svg)
     li.append(paragrafo)
     li.append(botao)
+
+    li.onclick = () => {
+        document.querySelectorAll('.app__section-task-list-item-active')
+            .forEach(elemento => {
+                elemento.classList.remove('app__section-task-list-item-active')
+            })
+        if (tarefaSelecionada == tarefa) {
+            paragrafoDescriçãoTarefa.textContent = ''
+            tarefaSelecionada = null
+            return
+        }
+        tarefaSelecionada = tarefa
+        paragrafoDescriçãoTarefa.textContent = tarefa.descricao
+        
+        li.classList.add('app__section-task-list-item-active')
+    }
 
     return li
 }
@@ -45,23 +74,23 @@ btnAdicionarTarefa.addEventListener('click', () => {
     // Esta linha vai alternar a visibilidade do nosso formulário.
     formAdicionarTarefa.classList.toggle('hidden')
 })
-// Aqui, estamos ouvindo o evento de 'submit' do nosso formulário. 
+// estamos ouvindo o evento de 'submit' do nosso formulário. 
 // Esse evento ocorre quando tentamos enviar o formulário (geralmente, apertando o botão 'Enter' ou clicando em um botão de submit).
 formAdicionarTarefa.addEventListener('submit', (evento) => {
     // Esta linha evita que a página recarregue (comportamento padrão de um formulário). Nós não queremos isso!
     evento.preventDefault();
     const descricaoTarefa = textarea.value
-    // Aqui, criamos um objeto tarefa com a descrição vinda da nossa textarea.
+    // criamos um objeto tarefa com a descrição vinda da nossa textarea.
     const tarefa = {
         descricao: textarea.value
     }
-    // Depois, adicionamos essa tarefa ao nosso array de tarefas.
+    // adicionamos essa tarefa ao nosso array de tarefas.
     tarefas.push(tarefa)
     const elementoTarefa = criarElementoTarefa(tarefa)
     ulTarefas.append(elementoTarefa)
     // E, finalmente, armazenamos nossa lista de tarefas no localStorage. 
     // Convertendo o array para uma string em formato JSON para poder armazenar.
-    localStorage.setItem('tarefas', JSON.stringify(tarefas))
+    atualizarTarefas()
     textarea.value = ''
     formAdicionarTarefa.classList.add('hidden')
 })
